@@ -59,7 +59,7 @@ module BanortePayworks
                      :exp_date => exp_date,
                      :cvv => cvv,
                      :amount => amount,
-                     :name => name
+                     :name => name,
                      :address1 => address1,
                      :address2 => address2,
                      :city => city,
