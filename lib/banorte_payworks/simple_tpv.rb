@@ -54,11 +54,19 @@ module BanortePayworks
     end
 
     #Simple call to payment
-    def do_payment(card_number, exp_date, cvv, amount)
+    def do_payment(card_number, exp_date, cvv, amount, name, address1, address2, city, state, country, client_id,email)
       do_transaction :card_number => card_number,
                      :exp_date => exp_date,
                      :cvv => cvv,
                      :amount => amount,
+                     :name => name
+                     :address1 => address1,
+                     :address2 => address2,
+                     :city => city,
+                     :state => state,
+                     :country => country,
+                     :email =>  email,
+                     :client_id => client_id,
                      :response_path => 'http://sample.net/',
                      :type => BanortePayworks::TYPE[:auth]
     end
@@ -91,7 +99,15 @@ module BanortePayworks
           'Cvv2Val' => properties[:cvv],
           'Total' => properties[:amount],
           'ResponsePath' => properties[:response_path],
-          'AuthCode' => properties[:authnum].to_s
+          'AuthCode' => properties[:authnum].to_s,
+          'BillToFirstName' =>  properties[:name],
+          'BillToStreet2' => properties[:address1],
+          'BillToStreet3' => properties[:address2],
+          'BillToCity' => properties[:city],
+          'BillToState' => properties[:state],
+          'BillToCountry' => properties[:country],
+          'UserId' => properties[:client_id],
+          'Email' => properties[:email]
 
       }).header['Location'].to_s
 
