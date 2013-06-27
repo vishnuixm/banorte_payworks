@@ -54,12 +54,12 @@ module BanortePayworks
     end
 
     #Simple call to payment
-    def do_payment(card_number, exp_date, cvv, amount, name, address1, address2, city, state, country, client_id,email)
+    def do_payment(card_number, exp_date, cvv, amount, client_name, address1, address2, city, state, country, client_id,email)
       do_transaction :card_number => card_number,
                      :exp_date => exp_date,
                      :cvv => cvv,
                      :amount => amount,
-                     :name => name,
+                     :name => client_name,
                      :address1 => address1,
                      :address2 => address2,
                      :city => city,
