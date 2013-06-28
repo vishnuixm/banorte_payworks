@@ -44,6 +44,7 @@ module BanortePayworks
       protocol
     end
 
+
     def self.from_3dsecure_post(post)
       parsed_post = CGI::parse(post)
       protocol = BanorteTransaction.new
