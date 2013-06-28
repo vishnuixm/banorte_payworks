@@ -44,6 +44,16 @@ module BanortePayworks
       protocol
     end
 
+    def self.from_3dsecure_post(post)
+      parsed_post = CGI::parse(post)
+      protocol = BanorteTransaction.new
+      protocol.eci = parsed_post['ECI'][0]
+      protocol.card_type = parsed_post['CardType'][0]
+      protocol.xid = parsed_post['XID'][0]
+      protocol.cavv = parsed_post['CAVV'][0]
+      protocol.status = parsed_post['Status'][0]
+      protocol
+    end
 
   end
 
@@ -71,21 +81,30 @@ module BanortePayworks
                      :type => BanortePayworks::TYPE[:auth]
     end
 
-    def void(transaction)
+    def do_3dsecure(properties = {})
+      location = HTTPClient.new.post(PAYWORKS_3DS_URL, {
+        'Card' => properties[:card_number],
+        'Expires' => properties[:exp_date],
+        'Total'  => properties[:card_type],
+        'MerchantId' => properties[:merchantid],
+        'MerchantName' => properties[:merchantname],
+        'MerchantCity' => properties[:merchantcity],
+        'ForwardPath' => properties[:forwardpath],
+        'Cert3d' => properties[:cert3d]
+      }).header['Location'].to_s
+      puts location.inspect if properties[:verbose]
 
-      do_transaction :order_id => transaction.order_id,
-                     :amount => transaction.amount,
-                     :authnum => transaction.authnum,
-                     :card_number => transaction.card_number,
-                     :exp_date => transaction.exp_date,
-                     :cvv => transaction.cvv,
-                     :response_path => 'http://sample.net/',
-                     :type => BanortePayworks::TYPE[:void]
+      protocol = BanorteTransaction.from_3dsecure_post location
+
+      if protocol.status != '200'
+        raise BpayworksException.new("Error::#{protocol.error_code}: #{protocol.message}")
+      else
+        protocol
+      end
 
     end
 
     def do_transaction(properties = {})
-
       location = HTTPClient.new.post(PAYWORKS_URL, {
           'Name' => @config[:username],
           'Password' => @config[:password],
@@ -108,7 +127,6 @@ module BanortePayworks
           'BillToCountry' => properties[:country],
           'UserId' => properties[:client_id],
           'Email' => properties[:email]
-
       }).header['Location'].to_s
 
       puts location.inspect if properties[:verbose]
@@ -125,9 +143,18 @@ module BanortePayworks
       else
         protocol
       end
+    end
 
+    def void(transaction)
+      do_transaction :order_id => transaction.order_id,
+                     :amount => transaction.amount,
+                     :authnum => transaction.authnum,
+                     :card_number => transaction.card_number,
+                     :exp_date => transaction.exp_date,
+                     :cvv => transaction.cvv,
+                     :response_path => 'http://sample.net/',
+                     :type => BanortePayworks::TYPE[:void]
     end
 
   end
-
 end
