@@ -99,7 +99,7 @@ module BanortePayworks
       protocol = BanorteTransaction.from_3dsecure_post location
 
       if protocol.status != '200'
-        raise BpayworksException.new("Error::#{protocol.error_code}: #{protocol.message}")
+        raise BpayworksException.new("Error::#{protocol.status}: #{protocol.message}")
       else
         protocol
       end
