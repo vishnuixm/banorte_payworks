@@ -29,7 +29,8 @@ module BanortePayworks
   class BanorteTransaction
     require 'cgi'
 
-    attr_accessor :error_code, :message, :authnum, :order_id, :amount, :card_number, :cvv, :exp_date
+    attr_accessor :error_code, :message, :authnum, :order_id, :amount, :card_number, :cvv, :exp_date, :eci,
+      :xid, :cavv, :status, :card_type
 
 
     def self.from_post(post)
