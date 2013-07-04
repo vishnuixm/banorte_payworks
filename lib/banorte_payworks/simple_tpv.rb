@@ -92,7 +92,7 @@ module BanortePayworks
           'BillToState' => properties[:state],
           'BillToCountry' => properties[:country],
           'UserId' => properties[:client_id],
-          'Email' => properties[:email]
+          'Email' => properties[:email],
           'CardType' => properties[:card_type],
           'XID' => properties[:xid],
           'CAVV' => properties[:cavv],
