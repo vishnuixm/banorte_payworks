@@ -92,6 +92,47 @@ module BanortePayworks
           'BillToState' => properties[:state],
           'BillToCountry' => properties[:country],
           'UserId' => properties[:client_id],
+          'Email' => properties[:email]
+      }).header['Location'].to_s
+
+      puts location.inspect if properties[:verbose]
+
+      protocol = BanorteTransaction.from_post location
+
+      #hack ?
+      protocol.card_number = properties[:card_number]
+      protocol.cvv = properties[:cvv]
+      protocol.exp_date = properties[:exp_date]
+
+      if protocol.error_code != '1'
+        raise BpayworksException.new("Error::#{protocol.error_code}: #{protocol.message}")
+      else
+        protocol
+      end
+    end
+
+    def do_securetransaction(properties = {})
+      location = HTTPClient.new.post(PAYWORKS_URL, {
+          'Name' => @config[:username],
+          'Password' => @config[:password],
+          'ClientId' => @config[:client_id],
+          'Mode' => @config[:mode],
+          'Comments' => @config[:comments],
+          'TransType' => properties[:type],
+          'Expires' => properties[:exp_date],
+          'Number' => properties[:card_number],
+          'Cvv2Indicator' => (properties[:cvv] == nil ? 0 : 1),
+          'Cvv2Val' => properties[:cvv],
+          'Total' => properties[:amount],
+          'ResponsePath' => properties[:response_path],
+          'AuthCode' => properties[:authnum].to_s,
+          'BillToFirstName' =>  properties[:name],
+          'BillToStreet2' => properties[:address1],
+          'BillToStreet3' => properties[:address2],
+          'BillToCity' => properties[:city],
+          'BillToState' => properties[:state],
+          'BillToCountry' => properties[:country],
+          'UserId' => properties[:client_id],
           'Email' => properties[:email],
           'CardType' => properties[:card_type],
           'XID' => properties[:xid],
