@@ -29,8 +29,8 @@ module BanortePayworks
   class BanorteTransaction
     require 'cgi'
 
-    attr_accessor :error_code, :message, :authnum, :order_id, :amount, :card_number, :cvv, :exp_date,
-
+    attr_accessor :error_code, :message, :authnum, :order_id, :amount, :card_number, :cvv, :exp_date, :eci,
+      :xid, :cavv, :status, :card_type
 
     def self.from_post(post)
       parsed_post = CGI::parse(post)
@@ -41,6 +41,17 @@ module BanortePayworks
       protocol.order_id = parsed_post['OrderId'][0]
       protocol.amount = parsed_post['Total'][0]
       protocol.card_number = parsed_post['Number'][0]
+      protocol
+    end
+
+    def self.from_3dsecure_post(post)
+      parsed_post = CGI::parse(post)
+      protocol = BanorteTransaction.new
+      protocol.eci = parsed_post['ECI'][0]
+      protocol.card_type = parsed_post['CardType'][0]
+      protocol.xid = parsed_post['XID'][0]
+      protocol.cavv = parsed_post['CAVV'][0]
+      protocol.status = parsed_post['Status'][0]
       protocol
     end
 
@@ -68,6 +79,29 @@ module BanortePayworks
                      :client_id => client_id,
                      :response_path => 'http://sample.net/',
                      :type => BanortePayworks::TYPE[:auth]
+    end
+
+    def do_3dsecure(properties = {})
+      location = HTTPClient.new.post(PAYWORKS_3DS_URL, {
+        'Card' => properties[:card_number],
+        'Expires' => properties[:exp_date],
+        'Total'  => properties[:card_type],
+        'MerchantId' => properties[:merchantid],
+        'MerchantName' => properties[:merchantname],
+        'MerchantCity' => properties[:merchantcity],
+        'ForwardPath' => properties[:forwardpath],
+        'Cert3d' => properties[:cert3d]
+      }).header['Location'].to_s
+      puts location.inspect if properties[:verbose]
+
+      protocol = BanorteTransaction.from_3dsecure_post location
+
+      if protocol.status != '200'
+        raise BpayworksException.new("Error::#{protocol.status}: #{protocol.message}")
+      else
+        protocol
+      end
+
     end
 
     def do_transaction(properties = {})
