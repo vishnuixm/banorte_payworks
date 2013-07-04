@@ -93,6 +93,11 @@ module BanortePayworks
           'BillToCountry' => properties[:country],
           'UserId' => properties[:client_id],
           'Email' => properties[:email]
+          'CardType' => properties[:card_type],
+          'XID' => properties[:xid],
+          'CAVV' => properties[:cavv],
+          'ECI' => properties[:eci],
+          'Status' => properties[:status]
       }).header['Location'].to_s
 
       puts location.inspect if properties[:verbose]
